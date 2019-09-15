@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { changeField, initalizeForm, register } from '../../modules/auth';
+import styled from 'styled-components';
+import { changeField, initalizeForm, login } from 'modules/auth';
 import AuthForm from 'components/auth/AuthForm';
 import { check } from 'modules/user';
 import { withRouter } from 'react-router-dom';
 
-RegisterForm.propTypes = {
-  history: PropTypes.object,
-};
+LoginForm.propTypes = {};
 
-function RegisterForm({ history }) {
+function LoginForm({ history }) {
   const [error, setError] = useState(null);
 
   const dispatch = useDispatch();
   const { form, auth, authError, user } = useSelector(({ auth, user }) => ({
-    form: auth.register,
+    form: auth.login,
     auth: auth.auth,
     authError: auth.authError,
     user: user.user,
@@ -25,7 +24,7 @@ function RegisterForm({ history }) {
     const { value, name } = e.target;
     dispatch(
       changeField({
-        form: 'register',
+        form: 'login',
         key: name,
         value,
       })
@@ -34,61 +33,36 @@ function RegisterForm({ history }) {
 
   const onSubmit = e => {
     e.preventDefault();
-
-    const { username, password, passwordConfirm } = form;
-    if ([username, password, passwordConfirm].includes('')) {
-      setError('Fill the blank field');
-      return;
-    }
-
-    if (password !== passwordConfirm) {
-      setError('Password confirmation failed');
-      changeField({
-        form: 'register',
-        key: 'password',
-        value: '',
-      });
-      changeField({
-        form: 'register',
-        key: 'passwordConfirm',
-        value: '',
-      });
-      return;
-    }
-    dispatch(register({ username, password }));
+    const { username, password } = form;
+    dispatch(login({ username, password }));
   };
 
   useEffect(() => {
-    dispatch(initalizeForm('register'));
+    dispatch(initalizeForm('login'));
   }, [dispatch]);
 
   useEffect(() => {
     if (authError) {
-      if (authError.response.status === 409) {
-        setError('Username already exist')
-        return;
-      }
-
-      setError('Sign up failed');
+      console.log('Error occurred', authError);
+      setError('Login failed');
       return;
     }
+
     if (auth) {
-      console.log('Sign up success', auth);
+      console.log('Login succeed');
       dispatch(check());
     }
-
   }, [auth, authError, dispatch]);
 
   useEffect(() => {
     if (user) {
-      console.log('Sign up successfully done', user);
       history.push('/');
     }
   }, [history, user]);
 
   return (
     <AuthForm
-      type="register"
+      type="login"
       form={form}
       onChange={onChange}
       onSubmit={onSubmit}
@@ -97,4 +71,4 @@ function RegisterForm({ history }) {
   );
 }
 
-export default withRouter(RegisterForm);
+export default withRouter(LoginForm);
